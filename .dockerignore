@@ -1,0 +1,7 @@
+.git
+ai/venv
+ai/.env
+.env
+**/__pycache__
+trading/trader
+trading/trader.exe
