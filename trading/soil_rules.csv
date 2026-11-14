@@ -1,0 +1,12 @@
+Condition,Product Keywords,Why
+dry,"fertilizers;micronutrients;specialty agricultural inputs;rubber;coconut","Dry soil cuts oil palm yields: growers buy soil inputs, and hardier crops like rubber and coconut hold up better"
+moist,"palm","Moist soil is what oil palm wants, so plantation output should be strong"
+wet,"pesticides;herbicides;crop protection","Wet soil brings fungal disease, pests and weeds, which drives crop protection sales"
+poor_drainage,"pesticides;crop protection","Waterlogged roots are prone to rot and disease, which drives crop protection sales"
+sandy,"fertilizers;coconut","Sandy soil leaches nutrients quickly (more fertilizer) and suits coconut"
+loamy,"palm","Loam is good plantation soil for oil palm"
+poor_health,"fertilizers;micronutrients;specialty agricultural inputs","Unhealthy soil needs inputs to restore fertility"
+healthy,"palm","Healthy soil supports strong plantation yields"
+acidic,"fertilizers;micronutrients","Acidic soil locks up nutrients, so growers add fertilizer and micronutrients"
+alkaline,"micronutrients","Alkaline soil makes micronutrients unavailable to plants"
+low_organic,"fertilizers","Low organic matter means poor fertility, so growers add fertilizer"
