@@ -1,27 +1,26 @@
-Company Name,Bursa Ticker,Yahoo Symbol,Headquarters,State/Territory,Sub-Sector,Primary Products/Activities,Founded,Live Price (MYR)
-SD Guthrie Berhad,SDG,5285.KL,Petaling Jaya,Selangor,Integrated Plantations,"Oil palm, rubber, coconut, sugarcane, cattle, oleochemicals",1821,0.000
-IOI Corporation Berhad,IOICORP,1961.KL,Putrajaya,Putrajaya,Integrated Plantations,"Palm oil, palm kernel oil, oleochemicals, specialty oils and fats",1969,0.000
-Kuala Lumpur Kepong Berhad (KLK),KLK,2445.KL,Ipoh,Perak,Integrated Plantations,"Palm oil, rubber, oleochemicals, non-ionic surfactants",1906,0.000
-FGV Holdings Berhad,Delisted,N/A,Kuala Lumpur,Kuala Lumpur,Agribusiness & Plantations,"Palm oil, rubber, sugar refining, logistics, fertilizers",2007,0.000
-United Plantations Berhad,UTDPLT,2089.KL,Teluk Intan,Perak,Plantations & Refining,"Sustainable palm oil, coconut, refined oils and fats",1917,0.000
-PPB Group Berhad,PPB,4065.KL,Kuala Lumpur,Kuala Lumpur,Grains & Agribusiness,"Flour milling, animal feed, grains trading, edible oils",1968,0.000
-Genting Plantations Berhad,GENP,2291.KL,Kuala Lumpur,Kuala Lumpur,Plantations & AgTech,"Oil palm cultivation, genomics research, biodiesel, seeds",1977,0.000
-Sarawak Oil Palms Berhad,SOP,5126.KL,Miri,Sarawak,Plantations & Refining,"Crude palm oil, refined palm products, biodiesel, pepper",1968,0.000
-Johor Plantations Group Berhad,JPG,5323.KL,Johor Bahru,Johor,Integrated Plantations,"Palm oil, palm kernels, biomethane gas, animal feed",1978,0.000
-Hap Seng Plantations Holdings Berhad,HSPLANT,5138.KL,Kuala Lumpur,Kuala Lumpur,Oil Palm Plantations,"Crude palm oil, palm kernels, fresh fruit bunches",2007,0.000
-Kim Loong Resources Berhad,KMLOONG,5027.KL,Johor Bahru,Johor,Plantations & Milling,"Crude palm oil, palm kernel oil, biogas power generation",1975,0.000
-Far East Holdings Berhad,FAREAST,5029.KL,Kuantan,Pahang,Oil Palm Plantations,"Fresh fruit bunches, crude palm oil, palm kernels",1973,0.000
-Keck Seng (Malaysia) Berhad,KSENG,3476.KL,Johor Bahru,Johor,Plantations & Manufacturing,"Oil palm cultivation, palm oil refining",1943,0.000
-Kretam Holdings Berhad,KRETAM,1996.KL,Sandakan,Sabah,Plantations & Refining,"Crude palm oil, palm kernel, refinery products, biomass",1988,0.000
-BLD Plantation Bhd.,BLDPLNT,5069.KL,Sibu,Sarawak,Plantations & Milling,"Oil palm cultivation, palm oil milling, kernel crushing",2001,0.000
-Sarawak Plantation Berhad,SWKPLNT,5135.KL,Miri,Sarawak,Oil Palm Plantations,"Crude palm oil, palm kernel, DxP seeds, cattle integration",1997,0.000
-Cepatwawasan Group Berhad,CEPAT,8982.KL,Sandakan,Sabah,Plantations & Bioenergy,"Oil palm cultivation, milling, biomass and biogas power",2001,0.000
-MHC Plantations Bhd.,MHC,5026.KL,Tanjung Malim,Perak,Plantations & Power,"Fresh fruit bunches, crude palm oil, biomass power",1960,0.000
-Sin Heng Chan (Malaya) Berhad,SHCHAN,4316.KL,Kuala Lumpur,Kuala Lumpur,Plantations & Energy,"Oil palm cultivation, fresh fruit bunches",1962,0.000
-Leong Hup International Berhad,LHI,6633.KL,Petaling Jaya,Selangor,Livestock & Feedmill,"Poultry farming, day-old chicks, livestock feed",1978,0.000
-CAB Cakaran Corporation Berhad,CAB,7174.KL,Perai,Penang,Poultry & Food,"Integrated poultry farming, broiler production, processed food",1976,0.000
-Huat Lai Resources Berhad,Private/Delisted,N/A,Merlimau,Melaka,Poultry Farming,"Table eggs, liquid eggs, poultry feed, fertilizers",1994,0.000
-Hextar Global Berhad,HEXTAR,5151.KL,Klang,Selangor,Agrochemicals,"Pesticides, herbicides, fertilizers, crop protection",1990,0.000
-Hextar Industries Berhad,HEXIND,0161.KL,Klang,Selangor,Fertilizers & Industrial,"Bulk blending fertilizers, specialty agricultural inputs",2016,0.000
-Imaspro Berhad,IMASPRO,7222.KL,Shah Alam,Selangor,Agrochemicals,"Pesticides, plant micronutrients, public health chemicals",1984,0.000
-
+Company Name,Bursa Ticker,Primary Products/Activities
+SD Guthrie Berhad,SDG,"Oil palm, rubber, coconut, sugarcane, cattle, oleochemicals"
+IOI Corporation Berhad,IOICORP,"Palm oil, palm kernel oil, oleochemicals, specialty oils and fats"
+Kuala Lumpur Kepong Berhad (KLK),KLK,"Palm oil, rubber, oleochemicals, non-ionic surfactants"
+FGV Holdings Berhad,Delisted,"Palm oil, rubber, sugar refining, logistics, fertilizers"
+United Plantations Berhad,UTDPLT,"Sustainable palm oil, coconut, refined oils and fats"
+PPB Group Berhad,PPB,"Flour milling, animal feed, grains trading, edible oils"
+Genting Plantations Berhad,GENP,"Oil palm cultivation, genomics research, biodiesel, seeds"
+Sarawak Oil Palms Berhad,SOP,"Crude palm oil, refined palm products, biodiesel, pepper"
+Johor Plantations Group Berhad,JPG,"Palm oil, palm kernels, biomethane gas, animal feed"
+Hap Seng Plantations Holdings Berhad,HSPLANT,"Crude palm oil, palm kernels, fresh fruit bunches"
+Kim Loong Resources Berhad,KMLOONG,"Crude palm oil, palm kernel oil, biogas power generation"
+Far East Holdings Berhad,FAREAST,"Fresh fruit bunches, crude palm oil, palm kernels"
+Keck Seng (Malaysia) Berhad,KSENG,"Oil palm cultivation, palm oil refining"
+Kretam Holdings Berhad,KRETAM,"Crude palm oil, palm kernel, refinery products, biomass"
+BLD Plantation Bhd.,BLDPLNT,"Oil palm cultivation, palm oil milling, kernel crushing"
+Sarawak Plantation Berhad,SWKPLNT,"Crude palm oil, palm kernel, DxP seeds, cattle integration"
+Cepatwawasan Group Berhad,CEPAT,"Oil palm cultivation, milling, biomass and biogas power"
+MHC Plantations Bhd.,MHC,"Fresh fruit bunches, crude palm oil, biomass power"
+Sin Heng Chan (Malaya) Berhad,SHCHAN,"Oil palm cultivation, fresh fruit bunches"
+Leong Hup International Berhad,LHI,"Poultry farming, day-old chicks, livestock feed"
+CAB Cakaran Corporation Berhad,CAB,"Integrated poultry farming, broiler production, processed food"
+Huat Lai Resources Berhad,Private/Delisted,"Table eggs, liquid eggs, poultry feed, fertilizers"
+Hextar Global Berhad,HEXTAR,"Pesticides, herbicides, fertilizers, crop protection"
+Hextar Industries Berhad,HEXIND,"Bulk blending fertilizers, specialty agricultural inputs"
+Imaspro Berhad,IMASPRO,"Pesticides, plant micronutrients, public health chemicals"

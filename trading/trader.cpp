@@ -1,16 +1,12 @@
-// trader.cpp
-// Reads malaysia_agriculture_companies.csv, looks up each company's live
-// Bursa Malaysia price on Google Finance, prints it, and writes
-// malaysia_agriculture_live.csv.
-//
 // Build:  g++ -std=c++11 trader.cpp -o trader -lcurl
 // Run:    ./trader
 
 #include <curl/curl.h>
 
-#include <chrono>
+#include <atomic>
 #include <cstdlib>
 #include <fstream>
+#include <functional>
 #include <iomanip>
 #include <iostream>
 #include <sstream>
@@ -24,10 +20,11 @@ const char* const OUTPUT_FILE = "malaysia_agriculture_live.csv";
 // Column positions in the CSV
 const std::size_t COL_NAME     = 0;
 const std::size_t COL_TICKER   = 1;   // Bursa ticker, e.g. SDG
-const std::size_t COL_YAHOO    = 2;   // "N/A" marks delisted/private companies
-const std::size_t COL_PRODUCTS = 6;   // always written back in quotes
-const std::size_t COL_PRICE    = 8;
-const std::size_t NUM_COLUMNS  = 9;
+const std::size_t COL_PRODUCTS = 2;   // always written back in quotes
+const std::size_t NUM_COLUMNS  = 3;
+
+// How many Google Finance pages to download at the same time.
+const std::size_t MAX_DOWNLOADS = 25;
 
 // Removes spaces, tabs, \r and \n from both ends.
 std::string trim(const std::string& s) {
@@ -58,6 +55,13 @@ std::vector<std::string> parseCSVLine(const std::string& line) {
     return fields;
 }
 
+// True for a real Bursa ticker. Companies that are no longer traded carry
+// "Delisted" or "Private/Delisted" in the ticker column instead.
+bool isTradedTicker(const std::string& ticker) {
+    if (ticker.empty() || ticker == "N/A") return false;
+    return ticker.find("elisted") == std::string::npos;
+}
+
 std::string formatPrice(double price) {
     if (price <= 0.0) return "N/A";
     std::ostringstream oss;
@@ -71,7 +75,6 @@ std::size_t writeCallback(void* data, std::size_t size, std::size_t nmemb, void*
 }
 
 // Downloads the Google Finance page for a Bursa ticker (e.g. SDG:KLSE).
-// The URL is built from small pieces so formatters cannot mangle it.
 // Returns the HTTP status code (0 if the request itself failed).
 long fetchGooglePage(CURL* curl, const std::string& ticker, std::string& body) {
     std::string url;
@@ -110,9 +113,17 @@ long fetchGooglePage(CURL* curl, const std::string& ticker, std::string& body) {
 
 struct Quote {
     double price;       // -1.0 when not found
-    double change;      // change since previous close, in RM
-    double changePct;   // same change, in percent
+    double change;
+    double changePct;
 };
+
+Quote emptyQuote() {
+    Quote q;
+    q.price = -1.0;
+    q.change = 0.0;
+    q.changePct = 0.0;
+    return q;
+}
 
 // Google embeds the quote in the page like this:
 //   ["SDG","KLSE"],"SD Guthrie Bhd",0,"MYR",[6.04,-0.11,-1.79,...
@@ -120,11 +131,7 @@ struct Quote {
 // The ["SDG","KLSE"] part also appears in other places (earnings, related
 // stocks), so each occurrence is checked until one has this exact shape.
 Quote extractQuote(const std::string& html, const std::string& ticker) {
-    Quote q;
-    q.price = -1.0;
-    q.change = 0.0;
-    q.changePct = 0.0;
-
+    Quote q = emptyQuote();
     const std::string key = "[\"" + ticker + "\",\"KLSE\"],\"";
     const std::string marker = "\",0,\"MYR\",[";
 
@@ -162,6 +169,41 @@ std::string formatChange(const Quote& q) {
     return oss.str();
 }
 
+// Each worker owns its own libcurl handle and takes the next unprocessed
+// company until none are left. Every company writes only to its own slot
+// in quotes/errors, so the workers never touch the same element.
+void downloadWorker(std::atomic<std::size_t>& nextIndex,
+                    const std::vector<std::vector<std::string> >& rows,
+                    std::vector<Quote>& quotes,
+                    std::vector<std::string>& errors) {
+    CURL* curl = curl_easy_init();
+    if (!curl) return;
+
+    for (;;) {
+        const std::size_t i = nextIndex++;
+        if (i >= rows.size()) break;
+
+        const std::string ticker = rows.at(i).at(COL_TICKER);
+        if (!isTradedTicker(ticker)) continue;
+
+        std::string html;
+        const long status = fetchGooglePage(curl, ticker, html);
+        quotes.at(i) = extractQuote(html, ticker);
+
+        if (quotes.at(i).price <= 0.0) {
+            std::string start = html.substr(0, 150);
+            for (std::size_t k = 0; k < start.size(); ++k) {
+                if (start.at(k) == '\n' || start.at(k) == '\r') start.at(k) = ' ';
+            }
+            std::ostringstream msg;
+            msg << "    No price for " << ticker << ": HTTP " << status
+                << " | " << start << "\n";
+            errors.at(i) = msg.str();
+        }
+    }
+    curl_easy_cleanup(curl);
+}
+
 int main() {
     // ---- 1. Read the CSV ----
     std::ifstream infile(INPUT_FILE);
@@ -179,7 +221,7 @@ int main() {
     while (std::getline(infile, line)) {
         if (trim(line).empty()) continue;
         std::vector<std::string> row = parseCSVLine(line);
-        if (row.size() < NUM_COLUMNS - 1) {
+        if (row.size() < NUM_COLUMNS) {
             std::cerr << "Warning: skipping malformed line: " << line << "\n";
             continue;
         }
@@ -188,74 +230,83 @@ int main() {
     }
     infile.close();
 
-    // ---- 2. Fetch a price for each company ----
-    curl_global_init(CURL_GLOBAL_DEFAULT);
-    CURL* curl = curl_easy_init();
-    if (!curl) {
+    // ---- 2. Fetch prices, several at a time ----
+    if (curl_global_init(CURL_GLOBAL_DEFAULT) != CURLE_OK) {
         std::cerr << "Error: could not start libcurl\n";
         return 1;
     }
 
-    std::cout << "Fetching live prices for " << rows.size() << " companies...\n\n";
-    std::cout << "        Company                               Ticker        Price  Change\n";
-    std::cout << "----------------------------------------------------------------------------------\n";
+    std::vector<Quote> quotes(rows.size(), emptyQuote());
+    std::vector<std::string> errors(rows.size());
+    std::atomic<std::size_t> nextIndex(0);
+
+    const std::size_t numThreads = rows.size() < MAX_DOWNLOADS ? rows.size() : MAX_DOWNLOADS;
+    std::cout << "Fetching live prices for " << rows.size() << " companies ("
+              << numThreads << " at a time)...\n";
+
+    std::vector<std::thread> workers;
+    for (std::size_t t = 0; t < numThreads; ++t) {
+        workers.emplace_back(downloadWorker, std::ref(nextIndex), std::cref(rows),
+                             std::ref(quotes), std::ref(errors));
+    }
+    for (std::size_t t = 0; t < workers.size(); ++t) {
+        workers.at(t).join();
+    }
+
+    curl_global_cleanup();
+
+    // ---- 3. Print the results in the original order ----
+    std::size_t productsWidth = 8;
+    for (std::size_t i = 0; i < rows.size(); ++i) {
+        if (rows.at(i).at(COL_PRODUCTS).size() > productsWidth) {
+            productsWidth = rows.at(i).at(COL_PRODUCTS).size();
+        }
+    }
+    productsWidth += 2;
+
+    std::cout << "\n" << std::left << std::setw(8) << "" << std::setw(38) << "Company"
+              << std::setw(static_cast<int>(productsWidth)) << "Products"
+              << std::setw(9) << "Ticker" << "     Price  Change\n" << std::right;
+    std::cout << std::string(8 + 38 + productsWidth + 9 + 28, '-') << "\n";
+
+    std::vector<std::string> prices;
     std::size_t priced = 0;
 
     for (std::size_t i = 0; i < rows.size(); ++i) {
-        std::vector<std::string>& row = rows.at(i);
-        const std::string ticker = row.at(COL_TICKER);
-        const bool listed = row.at(COL_YAHOO) != "N/A" && !row.at(COL_YAHOO).empty();
-        Quote q;
-        q.price = -1.0;
-        q.change = 0.0;
-        q.changePct = 0.0;
+        const std::vector<std::string>& row = rows.at(i);
+        const std::string& ticker = row.at(COL_TICKER);
+        const bool traded = isTradedTicker(ticker);
+        const Quote& q = quotes.at(i);
 
-        if (listed) {
-            std::string html;
-            const long status = fetchGooglePage(curl, ticker, html);
-            q = extractQuote(html, ticker);
-            if (q.price <= 0.0) {
-                std::string start = html.substr(0, 150);
-                for (std::size_t k = 0; k < start.size(); ++k) {
-                    if (start.at(k) == '\n' || start.at(k) == '\r') start.at(k) = ' ';
-                }
-                std::cerr << "    No price for " << ticker << ": HTTP " << status
-                          << " | " << start << "\n";
-            }
-            std::this_thread::sleep_for(std::chrono::milliseconds(300));
-        }
+        if (!errors.at(i).empty()) std::cerr << errors.at(i);
 
-        row.at(COL_PRICE) = formatPrice(q.price);
+        prices.push_back(formatPrice(q.price));
 
         std::cout << "[" << std::setw(2) << (i + 1) << "/" << rows.size() << "] "
                   << std::left << std::setw(38) << row.at(COL_NAME)
-                  << std::setw(9) << (listed ? ticker : "N/A") << std::right;
+                  << std::setw(static_cast<int>(productsWidth)) << row.at(COL_PRODUCTS)
+                  << std::setw(9) << (traded ? ticker : "N/A") << std::right;
         if (q.price > 0.0) {
             ++priced;
-            std::cout << "RM " << std::setw(7) << row.at(COL_PRICE) << "  " << formatChange(q) << "\n";
+            std::cout << "RM " << std::setw(7) << prices.back() << "  " << formatChange(q) << "\n";
         } else {
             std::cout << "N/A\n";
         }
     }
 
-    curl_easy_cleanup(curl);
-    curl_global_cleanup();
-
-    // ---- 3. Write the updated CSV ----
+    // ---- 4. Write the updated CSV ----
     std::ofstream outfile(OUTPUT_FILE);
     if (!outfile.is_open()) {
         std::cerr << "Error: could not write " << OUTPUT_FILE << "\n";
         return 1;
     }
-    outfile << header << "\n";
+    outfile << header << ",Live Price (MYR)\n";
     for (std::size_t i = 0; i < rows.size(); ++i) {
         const std::vector<std::string>& row = rows.at(i);
-        for (std::size_t c = 0; c < NUM_COLUMNS; ++c) {
-            if (c > 0) outfile << ",";
-            if (c == COL_PRODUCTS) outfile << "\"" << row.at(c) << "\"";
-            else outfile << row.at(c);
-        }
-        outfile << "\n";
+        outfile << row.at(COL_NAME) << ","
+                << row.at(COL_TICKER) << ","
+                << "\"" << row.at(COL_PRODUCTS) << "\","
+                << prices.at(i) << "\n";
     }
     outfile.close();
 
