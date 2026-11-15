@@ -6,8 +6,9 @@ RUN apt-get update \
     && apt-get install -y --no-install-recommends g++ libcurl4-openssl-dev ca-certificates \
     && rm -rf /var/lib/apt/lists/*
 
-COPY ai/requirements.txt /tmp/requirements.txt
-RUN pip install --no-cache-dir -r /tmp/requirements.txt
+COPY ai/requirements.txt /tmp/ai-requirements.txt
+COPY data/requirements.txt /tmp/data-requirements.txt
+RUN pip install --no-cache-dir -r /tmp/ai-requirements.txt -r /tmp/data-requirements.txt
 
 COPY trading/trader.cpp /tmp/trader.cpp
 RUN g++ -std=c++11 /tmp/trader.cpp -o /usr/local/bin/trader -lcurl -pthread
@@ -15,6 +16,9 @@ RUN g++ -std=c++11 /tmp/trader.cpp -o /usr/local/bin/trader -lcurl -pthread
 # sed strips Windows line endings in case Git checked the script out with CRLF.
 COPY run.sh /usr/local/bin/run.sh
 RUN sed -i 's/\r$//' /usr/local/bin/run.sh
+
+# Charts are saved to files; there is no screen inside the container.
+ENV MPLBACKEND=Agg
 
 WORKDIR /app
 ENTRYPOINT ["bash", "/usr/local/bin/run.sh"]

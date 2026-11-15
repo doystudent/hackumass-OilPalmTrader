@@ -1,5 +1,6 @@
 .git
 ai/venv
+data/venv
 ai/.env
 .env
 **/__pycache__

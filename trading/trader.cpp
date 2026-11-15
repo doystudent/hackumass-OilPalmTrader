@@ -22,6 +22,7 @@
 const char* const INPUT_FILE  = "malaysia_agriculture_companies.csv";
 const char* const OUTPUT_FILE = "malaysia_agriculture_live.csv";
 const char* const RULES_FILE  = "soil_rules.csv";
+const char* const MATCHES_FILE = "soil_matches.csv";
 
 // Column positions in the CSV
 const std::size_t COL_NAME     = 0;
@@ -446,6 +447,44 @@ bool betterMatch(const Match& a, const Match& b) {
     return a.order < b.order;
 }
 
+// Wraps a value in quotes for a CSV file, doubling any quotes inside it.
+std::string csvQuote(const std::string& value) {
+    std::string out = "\"";
+    for (std::size_t i = 0; i < value.size(); ++i) {
+        if (value.at(i) == '"') out += '"';
+        out += value.at(i);
+    }
+    out += "\"";
+    return out;
+}
+
+// Saves the matched companies so other programs (data/stock_backtest.py) can
+// use the same list. Written even when nothing matched, so an old file from a
+// previous soil image is never mistaken for the current result.
+bool writeSoilMatches(const std::vector<std::vector<std::string> >& rows,
+                      const std::vector<std::string>& matched,
+                      const std::vector<Quote>& quotes) {
+    std::ofstream out(MATCHES_FILE);
+    if (!out.is_open()) return false;
+    out << "Company Name,Bursa Ticker,Primary Products/Activities,Matched,"
+        << "Live Price (MYR),Change,Change %\n";
+    for (std::size_t i = 0; i < rows.size(); ++i) {
+        const Quote& q = quotes.at(i);
+        out << csvQuote(rows.at(i).at(COL_NAME)) << ","
+            << rows.at(i).at(COL_TICKER) << ","
+            << csvQuote(rows.at(i).at(COL_PRODUCTS)) << ","
+            << csvQuote(matched.at(i)) << ",";
+        if (q.price > 0.0) {
+            out << std::fixed << std::setprecision(3) << q.price << "," << q.change << ","
+                << std::setprecision(2) << q.changePct;
+        } else {
+            out << "N/A,N/A,N/A";
+        }
+        out << "\n";
+    }
+    return true;
+}
+
 int runSoilMatch(const std::string& reportPath) {
     // ---- 1. Soil report -> conditions ----
     std::map<std::string, std::string> report;
@@ -519,6 +558,8 @@ int runSoilMatch(const std::string& reportPath) {
 
     if (matches.empty()) {
         std::cout << "\nNo companies match these conditions.\n";
+        writeSoilMatches(std::vector<std::vector<std::string> >(), std::vector<std::string>(),
+                         std::vector<Quote>());
         return 0;
     }
 
@@ -589,6 +630,13 @@ int runSoilMatch(const std::string& reportPath) {
             std::cout << std::left << std::setw(12 + changeWidth) << "N/A" << std::right;
         }
         std::cout << matches.at(i).matched << "\n";
+    }
+
+    // ---- 5. Save the matches for the stock backtest ----
+    std::vector<std::string> matchedText;
+    for (std::size_t i = 0; i < matches.size(); ++i) matchedText.push_back(matches.at(i).matched);
+    if (!writeSoilMatches(rows, matchedText, quotes)) {
+        std::cerr << "Warning: could not write " << MATCHES_FILE << "\n";
     }
 
     std::cout << "\nDone: " << matches.size() << " of " << order << " companies match, "

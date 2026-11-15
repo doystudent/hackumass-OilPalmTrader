@@ -237,7 +237,11 @@ def print_notes():
     print("-----------------------------------------------------")
 
 
-def plot_growth(trades, save_path=Path(__file__).resolve().parent / "growth.png"):
+# Charts go in images/results/ at the top of the project, next to the backtest chart.
+RESULTS_DIR = Path(__file__).resolve().parent.parent / "images" / "results"
+
+
+def plot_growth(trades, save_path=RESULTS_DIR / "futures.png"):
     # Value of $1 over time for each strategy; log scale so 12x and 2x are both readable on one chart
     bot_growth = (1 + trades["bot_return"]).cumprod()
     hold_growth = (1 + trades["next_month_return"]).cumprod()
@@ -272,7 +276,8 @@ def plot_growth(trades, save_path=Path(__file__).resolve().parent / "growth.png"
     )
     plt.figtext(0.5, 0.01, caption, ha="center", va="bottom", fontsize=8.5, color="dimgray")
     plt.tight_layout(rect=(0, 0.08, 1, 1))
-    # Save next to this script (not wherever the terminal happens to be), keeping the caption inside the image
+    # Save in images/results/ (not wherever the terminal happens to be), keeping the caption inside the image
+    Path(save_path).parent.mkdir(parents=True, exist_ok=True)
     plt.savefig(save_path, dpi=150, bbox_inches="tight")
     print(f"Chart saved to: {save_path}")
     plt.show()

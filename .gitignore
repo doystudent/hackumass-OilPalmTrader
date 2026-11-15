@@ -1,6 +1,8 @@
 ai/venv/
+data/venv/
 ai/.env
 .env
 __pycache__/
 trading/trader
 trading/soil_report.txt
+trading/soil_matches.csv
