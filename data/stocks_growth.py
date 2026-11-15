@@ -1,10 +1,11 @@
-"""Stocks-only backtest: what $1 in each company's shares grew to, as a chart.
+"""Historical stock data chart: what $1 in each company's shares grew to.
 
-Run:  docker compose run --rm stocks backtest
+Run:  docker compose run --rm stocks historicalChart
 
-No soil analysis and no palm oil signal: this just holds every traded company
-from trading/malaysia_agriculture_companies.csv and saves
-images/results/stocks.png.
+This is not a backtest. No trading rule, soil analysis or palm oil signal is
+applied: it shows how every traded company from
+trading/malaysia_agriculture_companies.csv did when simply held, and saves
+images/results/stocks.png. Use it as the baseline for the two backtest charts.
 
 Needs the price history from:  docker compose run --rm stock history
 """
@@ -90,7 +91,7 @@ def main():
         ax.text(label_x, y, f" {name}: ${value:,.2f}", va="center", ha="left", fontsize=9, color=INK,
                 clip_on=False)
 
-    ax.set_title("Malaysian agriculture stocks: value of $1 held the whole time")
+    ax.set_title("Malaysian agriculture stocks, historical prices: value of $1 held the whole time")
     ax.set_ylabel("Value of $1 (log scale)")
     ax.set_xlabel("Date")
     ax.legend(loc="upper left", fontsize=9)
@@ -111,7 +112,7 @@ def main():
     fig.savefig(CHART_FILE, dpi=150, bbox_inches="tight")
     plt.close(fig)
 
-    print(f"Stocks-only backtest: {len(growth)} companies held from {start_label} "
+    print(f"Historical stock data (no trading rule): {len(growth)} companies held from {start_label} "
           f"to {last_date.strftime('%b %Y')}.")
     print(f"$1 spread equally across all of them grew to ${average.iloc[-1]:,.2f}. "
           f"Best: {best} (${finals[best]:,.2f}). Worst: {worst} (${finals[worst]:,.2f}).")

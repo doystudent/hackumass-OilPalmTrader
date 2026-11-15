@@ -28,28 +28,30 @@ docker compose run --rm soil prices                                  # live pric
 
 Download History before back testing
 docker compose run --rm stock history                                # download monthly price history for every company
+docker compose run --rm stocks historicalChart                       # chart of that history, each company simply held (not a backtest); saves images/results/stocks.png
 
 Backtesting
 docker compose run --rm stockFutures backtest                        # soil match on images/soil/soil.jpg, then backtest those companies and save the chart
 docker compose run --rm stockFutures backtest images/soil/mysoil.jpg # the same, for your own image
 docker compose run --rm futures backtest                             # palm oil only (data/main.py), no soil analysis; saves images/results/futures.png
-docker compose run --rm stocks backtest                              # stocks only, no soil analysis or palm oil signal; saves images/results/stocks.png
 
 ```
 
 `soil`, `stock`, `stockFutures`, `futures` and `stocks` are five names for the same container (see `compose.yaml`),
 so each command says what it works on. They share one image, which is built once. `backtest` does something
-different for each name:
+different for the two names that have it:
 
 - `stockFutures backtest`: soil match, then the matched companies tested against the palm oil signal.
 - `futures backtest`: the palm oil signal on its own (`data/main.py`).
-- `stocks backtest`: every company's shares held the whole time (`data/stocks_growth.py`). It only saves a chart.
+
+`stocks historicalChart` is not a backtest. It charts every company's shares held the whole time
+(`data/stocks_growth.py`), with no trading rule, as a baseline for the two backtest charts.
 
 Images are kept in two folders:
 
 - `images/soil/` holds the soil photos to analyze. `soil.jpg` is the default.
 - `images/results/` holds the charts the scripts save: `stockFutures.png` from `stockFutures backtest`,
-  `futures.png` from `futures backtest`, and `stocks.png` from `stocks backtest`.
+  `futures.png` from `futures backtest`, and `stocks.png` from `stocks historicalChart`.
 
 To analyze your own image, put it inside the project folder first (for example in `images/soil/`). The container can only see files in this folder.
 

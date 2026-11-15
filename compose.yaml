@@ -4,7 +4,7 @@
 #   docker compose run --rm stock history                  stock price history
 #   docker compose run --rm stockFutures backtest [image]  soil-matched stocks + palm oil signal
 #   docker compose run --rm futures backtest               palm oil backtest only (data/main.py)
-#   docker compose run --rm stocks backtest                stocks-only chart
+#   docker compose run --rm stocks historicalChart         chart of the historical stock prices (no backtest)
 #
 # They all share one image (built once) and the same project folder.
 # APP_SERVICE tells run.sh which name was used, since "backtest" means something different for each.
@@ -41,6 +41,6 @@ services:
 
   stocks:
     <<: *app
-    command: ["backtest"]
+    command: ["historicalChart"]
     environment:
       APP_SERVICE: stocks

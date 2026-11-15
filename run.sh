@@ -9,7 +9,7 @@
 #   docker compose run --rm stockFutures backtest                   # soil match, then backtest those companies
 #   docker compose run --rm stockFutures backtest images/soil/mysoil.jpg
 #   docker compose run --rm futures backtest                        # palm oil backtest only (data/main.py), no soil analysis
-#   docker compose run --rm stocks backtest                         # stocks-only chart, no soil analysis or palm oil signal
+#   docker compose run --rm stocks historicalChart                  # chart of the historical stock prices (not a backtest)
 #
 # soil, stock, stockFutures, futures and stocks are five names for this same container (see compose.yaml).
 # compose.yaml sets APP_SERVICE to the name that was used, because "backtest" means something different for each.
@@ -38,8 +38,14 @@ if [ "${1:-}" = "model" ] || { [ "${1:-}" = "backtest" ] && [ "$SERVICE" = "futu
     exec python data/main.py
 fi
 
-# Stocks-only chart: "stocks backtest".
+# This used to be "stocks backtest", but it only charts past prices and tests nothing.
 if [ "${1:-}" = "backtest" ] && [ "$SERVICE" = "stocks" ]; then
+    echo "ERROR: 'stocks backtest' was renamed. Run: docker compose run --rm stocks historicalChart" >&2
+    exit 1
+fi
+
+# Chart of the historical stock prices: "stocks historicalChart".
+if [ "${1:-}" = "historicalChart" ]; then
     if [ ! -d "$ROOT/data/stock_history" ]; then
         echo "ERROR: no price history yet. Run this first: docker compose run --rm stock history" >&2
         exit 1
